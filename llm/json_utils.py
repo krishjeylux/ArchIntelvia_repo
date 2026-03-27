@@ -1,39 +1,34 @@
 import json
 import ast
+import re
 
 
 def safe_json_parse(text):
-    """
-    Robust parser that handles:
-    - dict (already parsed)
-    - JSON string
-    - Python dict string
-    """
 
-    # ✅ CASE 1 — Already a dict
+    # ✅ Case 1 — already dict
     if isinstance(text, dict):
         return text
 
-    # ✅ CASE 2 — JSON string
+    # ✅ Extract JSON block if wrapped in markdown
+    try:
+        match = re.search(r"\{.*\}", text, re.DOTALL)
+        if match:
+            text = match.group()
+    except:
+        pass
+
+    # ✅ Fix Python-style booleans
+    text = text.replace("True", "true").replace("False", "false")
+
+    # ✅ Try JSON
     try:
         return json.loads(text)
     except:
         pass
 
-    # ✅ CASE 3 — Python dict string
+    # ✅ Try Python dict
     try:
         return ast.literal_eval(text)
-    except:
-        pass
-
-    # ✅ CASE 4 — Extract substring
-    try:
-        start = text.find("{")
-        end = text.rfind("}") + 1
-
-        if start != -1 and end != -1:
-            snippet = text[start:end]
-            return ast.literal_eval(snippet)
     except:
         pass
 

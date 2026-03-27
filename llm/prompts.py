@@ -91,3 +91,37 @@ IMPORTANT:
 - Return ONLY JSON
 - No explanation
 """
+PARAM_INFER_PROMPT = """
+You are an expert hardware architect.
+
+Your task:
+Given partial memory controller parameters and a use-case,
+infer the missing parameters intelligently.
+
+Context:
+{context}
+
+User Input:
+{params}
+
+Rules:
+- Do NOT modify given parameters
+- Only fill missing ones
+- Keep valid hardware configurations
+- Prefer power-of-2 BANKS
+- Ensure ADDR_WIDTH supports BANKS
+
+Consider use-case:
+- "low power" → fewer banks, no pipeline
+- "high performance" → more banks, deeper pipeline
+- "balanced" → moderate values
+
+Output STRICT JSON:
+{{
+  "inferred_params": {{
+    "BANKS": ...,
+    "PIPELINE_DEPTH": ...,
+    "LOW_POWER_MODE": ...
+  }}
+}}
+"""

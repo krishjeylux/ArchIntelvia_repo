@@ -7,6 +7,7 @@ from planner.validator import compute_address_split, enforce_constraints
 from rag.retriever import retrieve_context
 from planner.optimizer import optimize_parameters
 from planner.dse import run_dse, rank_designs
+from planner.param_infer import infer_parameters
 def handle_dse_selection(params):
 
     print("\n=== RUNNING DESIGN SPACE EXPLORATION ===\n")
@@ -70,6 +71,10 @@ def handle_user_decision(opt_result, original_params):
         return original_params
 
 def generate_architecture_plan(params: dict) -> dict:
+    
+    params = infer_parameters(params)
+
+    print("\n=== FINAL PARAMETERS AFTER INFERENCE ===\n", params)
     params = handle_dse_selection(params)
     # 🔥 STEP 0 — PARAM OPTIMIZATION
     opt_result = optimize_parameters(params)
@@ -124,4 +129,4 @@ def generate_architecture_plan(params: dict) -> dict:
     # 🔥 STEP 5 — Enforce constraints
     final_plan = enforce_constraints(validated, final_params)
 
-    return final_plan
+    return final_plan,params
