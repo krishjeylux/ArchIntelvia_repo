@@ -2,10 +2,8 @@ from planner.planner import generate_architecture_plan
 
 params = {
     "DATA_WIDTH": 32,
-    "ADDR_WIDTH": 10,
-    "BANKS": 4,
-    "PIPELINE_DEPTH": 2,
-    "LOW_POWER_MODE": True
+    "ADDR_WIDTH": 2,
+    "BANKS": 4   # impossible split
 }
 
 plan = generate_architecture_plan(params)
