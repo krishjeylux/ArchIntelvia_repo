@@ -6,7 +6,7 @@ from rtl.generator import generate_rtl
 
 def main():
 
-    # 🔹 STEP 1 — Input parameters
+    # 🔹 STEP 1 — User Input Parameters
     params = {
         "DATA_WIDTH": 32,
         "ADDR_WIDTH": 10,
@@ -17,7 +17,8 @@ def main():
 
     print("\n=== INPUT PARAMETERS ===\n", params)
 
-    # 🔹 STEP 2 — Generate architecture (includes optimization + user decision)
+    # 🔹 STEP 2 — Generate Architecture Plan
+    # (This now includes: DSE → Optimization → User Decisions)
     architecture_plan = generate_architecture_plan(params)
 
     print("\n=== FINAL ARCHITECTURE PLAN ===\n", architecture_plan)
@@ -34,4 +35,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

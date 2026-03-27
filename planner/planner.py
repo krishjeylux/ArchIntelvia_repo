@@ -6,6 +6,37 @@ from llm.parser import safe_parse
 from planner.validator import compute_address_split, enforce_constraints
 from rag.retriever import retrieve_context
 from planner.optimizer import optimize_parameters
+from planner.dse import run_dse, rank_designs
+def handle_dse_selection(params):
+
+    print("\n=== RUNNING DESIGN SPACE EXPLORATION ===\n")
+
+    results = run_dse(params)
+
+    # Rank by performance (default)
+    ranked = rank_designs(results, objective="performance")
+
+    top_designs = ranked[:3]
+
+    print("Top Design Candidates:\n")
+
+    for i, d in enumerate(top_designs):
+        print(f"Option {i+1}:")
+        print(f"  Params      : {d['params']}")
+        print(f"  Performance : {d['performance']}")
+        print(f"  Area        : {d['area']}")
+        print(f"  Power       : {d['power']}")
+        print()
+
+    choice = input("Select design (1/2/3) or press Enter to skip: ").strip()
+
+    if choice in ["1", "2", "3"]:
+        selected = top_designs[int(choice)-1]["params"]
+        print("\n[INFO] Using selected DSE configuration\n")
+        return selected
+
+    print("\n[INFO] Skipping DSE, using original params\n")
+    return params
 def handle_user_decision(opt_result, original_params):
 
     if opt_result.get("recommendation") == "no_change":
@@ -39,7 +70,7 @@ def handle_user_decision(opt_result, original_params):
         return original_params
 
 def generate_architecture_plan(params: dict) -> dict:
-
+    params = handle_dse_selection(params)
     # 🔥 STEP 0 — PARAM OPTIMIZATION
     opt_result = optimize_parameters(params)
 
