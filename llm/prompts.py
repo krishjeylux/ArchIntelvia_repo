@@ -1,28 +1,33 @@
 # backend/llm/prompts.py
 
 PARAM_OPT_PROMPT = """
-You are an expert hardware design engineer.
+You are an expert hardware architect specializing in memory controllers.
 
-User configuration:
-{user_input}
+Your task:
+Analyze parameters and suggest improvements ONLY if beneficial.
 
-Relevant knowledge:
+Context:
 {context}
 
-Task:
-1. Analyze the parameters
-2. Suggest improvements ONLY if meaningful
-3. Compare original vs optimized
+User Parameters:
+{params}
 
-Rules:
-- Prefer power-of-2 values
-- Balance performance, latency, and complexity
-- Do NOT suggest unnecessary changes
+STRICT RULES:
+- Do NOT introduce new parameters
+- Do NOT remove parameters
+- Do NOT make invalid configurations
+- Only suggest meaningful improvements
 
-Output format (STRICT JSON ONLY):
+IMPORTANT:
+You MUST analyze tradeoffs:
+- performance
+- area
+- power
+- design complexity
 
+OUTPUT FORMAT (STRICT JSON ONLY):
 {{
-  "user_params": {{}},
+  "user_params": {params},
   "optimized_params": {{}},
   "changes": [
     {{
@@ -32,12 +37,19 @@ Output format (STRICT JSON ONLY):
       "reason": "..."
     }}
   ],
-  "recommendation": "original" OR "optimized"
+  "analysis": {{
+    "performance": "...",
+    "area": "...",
+    "power": "...",
+    "complexity": "..."
+  }},
+  "tradeoff": "...",
+  "recommendation": "optimized_if_performance_critical" OR "no_change"
 }}
 
-IMPORTANT:
-- Return ONLY JSON
-- No explanation outside JSON
+If no improvement:
+- keep params same
+- recommendation = "no_change"
 """
 
 ARCH_PLAN_PROMPT = """
@@ -54,6 +66,15 @@ And design knowledge:
 Task:
 Generate a high-level architecture plan.
 
+Rules:
+- Derive bank structure from BANKS
+- Split address into bank bits + local address bits
+- Choose appropriate arbiter
+- Include pipeline stages based on PIPELINE_DEPTH
+- Include power features if LOW_POWER_MODE is true
+- Use the provided context as the primary source of truth
+- Do not make assumptions beyond the context unless necessary
+
 Output STRICT JSON:
 
 {{
@@ -68,4 +89,39 @@ Output STRICT JSON:
 
 IMPORTANT:
 - Return ONLY JSON
+- No explanation
+"""
+PARAM_INFER_PROMPT = """
+You are an expert hardware architect.
+
+Your task:
+Given partial memory controller parameters and a use-case,
+infer the missing parameters intelligently.
+
+Context:
+{context}
+
+User Input:
+{params}
+
+Rules:
+- Do NOT modify given parameters
+- Only fill missing ones
+- Keep valid hardware configurations
+- Prefer power-of-2 BANKS
+- Ensure ADDR_WIDTH supports BANKS
+
+Consider use-case:
+- "low power" → fewer banks, no pipeline
+- "high performance" → more banks, deeper pipeline
+- "balanced" → moderate values
+
+Output STRICT JSON:
+{{
+  "inferred_params": {{
+    "BANKS": ...,
+    "PIPELINE_DEPTH": ...,
+    "LOW_POWER_MODE": ...
+  }}
+}}
 """

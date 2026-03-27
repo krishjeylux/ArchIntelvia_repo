@@ -45,4 +45,4 @@ def call_llm(prompt: str, system_prompt: str = None) -> dict:
 
     content = response.choices[0].message.content
 
-    return extract_json(content)
+    return content

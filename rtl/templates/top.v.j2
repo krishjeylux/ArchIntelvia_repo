@@ -1,7 +1,7 @@
 module {{ module_name }} #(
     parameter DATA_WIDTH = {{ DATA_WIDTH }},
     parameter ADDR_WIDTH = {{ ADDR_WIDTH }},
-    parameter BANKS = {{ BANKS }}
+    parameter NUM_BANKS = {{ num_banks }}
 )(
     input clk,
     input rst,
@@ -13,41 +13,52 @@ module {{ module_name }} #(
     output [DATA_WIDTH-1:0] rdata
 );
 
-    wire [BANKS-1:0] bank_sel;
-    wire [DATA_WIDTH-1:0] bank_rdata [0:BANKS-1];
+    // -------------------------
+    // Internal Signals
+    // -------------------------
+    wire [{{ bank_bits-1 }}:0] bank_sel;
+    wire [{{ local_bits-1 }}:0] local_addr;
 
+    wire [DATA_WIDTH-1:0] bank_rdata [0:NUM_BANKS-1];
+
+    // -------------------------
     // Decoder
+    // -------------------------
     decoder #(
-        .BANKS(BANKS),
-        .ADDR_WIDTH(ADDR_WIDTH)
+        .ADDR_WIDTH(ADDR_WIDTH),
+        .BANK_BITS({{ bank_bits }}),
+        .LOCAL_BITS({{ local_bits }})
     ) u_decoder (
         .addr(addr),
-        .bank_sel(bank_sel)
+        .bank_sel(bank_sel),
+        .local_addr(local_addr)
     );
 
+    // -------------------------
     // Banks
-    {% for i in range(BANKS) %}
-    bank u_bank_{{ i }} (
+    // -------------------------
+    {% for i in range(num_banks) %}
+    bank_{{ i }} u_bank_{{ i }} (
         .clk(clk),
-        .rst(rst),
-        .addr(addr),
+        .we(we & (bank_sel == {{ i }})),
+        .addr(local_addr),
         .wdata(wdata),
-        .we(we & bank_sel[{{ i }}]),
         .rdata(bank_rdata[{{ i }}])
     );
     {% endfor %}
 
+    // -------------------------
     // Read MUX
+    // -------------------------
     reg [DATA_WIDTH-1:0] rdata_reg;
-    integer j;
 
     always @(*) begin
-        rdata_reg = 0;
-        for (j = 0; j < BANKS; j = j + 1) begin
-            if (bank_sel[j]) begin
-                rdata_reg = bank_rdata[j];
-            end
-        end
+        case(bank_sel)
+            {% for i in range(num_banks) %}
+            {{ i }}: rdata_reg = bank_rdata[{{ i }}];
+            {% endfor %}
+            default: rdata_reg = 0;
+        endcase
     end
 
     assign rdata = rdata_reg;
