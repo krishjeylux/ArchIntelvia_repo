@@ -1,10 +1,10 @@
 # backend/llm/prompts.py
 
 PARAM_OPT_PROMPT = """
-You are an expert hardware architect specializing in memory controller design.
+You are an expert hardware architect specializing in memory controllers.
 
 Your task:
-Analyze the given parameters and suggest improvements ONLY if they provide clear benefits.
+Analyze parameters and suggest improvements ONLY if beneficial.
 
 Context:
 {context}
@@ -17,12 +17,13 @@ STRICT RULES:
 - Do NOT remove parameters
 - Do NOT make invalid configurations
 - Only suggest meaningful improvements
-- If unsure, DO NOT change anything
 
-Focus on:
-- Performance (parallelism, throughput)
-- Latency (pipeline, access delay)
-- Power efficiency (clock gating, low power modes)
+IMPORTANT:
+You MUST analyze tradeoffs:
+- performance
+- area
+- power
+- design complexity
 
 OUTPUT FORMAT (STRICT JSON ONLY):
 {{
@@ -36,12 +37,19 @@ OUTPUT FORMAT (STRICT JSON ONLY):
       "reason": "..."
     }}
   ],
-  "recommendation": "optimized" OR "no_change"
+  "analysis": {{
+    "performance": "...",
+    "area": "...",
+    "power": "...",
+    "complexity": "..."
+  }},
+  "tradeoff": "...",
+  "recommendation": "optimized_if_performance_critical" OR "no_change"
 }}
 
-If no improvement is needed:
-- return same parameters
-- set recommendation = "no_change"
+If no improvement:
+- keep params same
+- recommendation = "no_change"
 """
 
 ARCH_PLAN_PROMPT = """

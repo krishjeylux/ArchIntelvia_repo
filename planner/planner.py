@@ -7,7 +7,8 @@ from planner.validator import compute_address_split, enforce_constraints
 from rag.retriever import retrieve_context
 from planner.optimizer import optimize_parameters
 def handle_user_decision(opt_result, original_params):
-    if opt_result.get("recommendation") != "optimized":
+
+    if opt_result.get("recommendation") == "no_change":
         return original_params
 
     print("\n=== OPTIMIZATION SUGGESTIONS ===\n")
@@ -16,7 +17,19 @@ def handle_user_decision(opt_result, original_params):
         print(f"{change['parameter']}: {change['from']} → {change['to']}")
         print(f"  Reason: {change['reason']}\n")
 
-    choice = input("Apply optimized parameters? (y/n): ").strip().lower()
+    # 🔥 NEW: Tradeoff display
+    print("=== TRADEOFF ANALYSIS ===\n")
+
+    analysis = opt_result.get("analysis", {})
+
+    print("Performance :", analysis.get("performance", "N/A"))
+    print("Area        :", analysis.get("area", "N/A"))
+    print("Power       :", analysis.get("power", "N/A"))
+    print("Complexity  :", analysis.get("complexity", "N/A"))
+
+    print("\nTradeoff:", opt_result.get("tradeoff", "N/A"))
+
+    choice = input("\nApply optimized parameters? (y/n): ").strip().lower()
 
     if choice == "y":
         print("\n[INFO] Using optimized parameters\n")

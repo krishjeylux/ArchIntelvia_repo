@@ -26,6 +26,11 @@ def sanitize_result(result, original_params):
     optimized = {k: optimized[k] for k in original_params}
 
     result["optimized_params"] = optimized
+
+    # 🔥 Ensure new fields exist
+    result.setdefault("analysis", {})
+    result.setdefault("tradeoff", "Not specified")
+
     return result
 
 
