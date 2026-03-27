@@ -1,27 +1,21 @@
-# backend/rtl/modules/bank.py
+from rtl.template_engine import render_template
 
-def generate_bank(plan: dict, params: dict) -> str:
 
-    return f"""
-module bank #(
-    parameter DATA_WIDTH = {params['DATA_WIDTH']},
-    parameter ADDR_WIDTH = {plan['local_address_bits']}
-)(
-    input clk,
-    input we,
-    input [ADDR_WIDTH-1:0] addr,
-    input [DATA_WIDTH-1:0] wdata,
-    output reg [DATA_WIDTH-1:0] rdata
-);
+def generate_bank(plan, params):
 
-    reg [DATA_WIDTH-1:0] mem [0:(1<<ADDR_WIDTH)-1];
+    banks = plan["num_banks"]
+    local_addr = plan["local_address_bits"]
 
-    always @(posedge clk) begin
-        if (we)
-            mem[addr] <= wdata;
+    rtl = []
 
-        rdata <= mem[addr];
-    end
+    for i in range(banks):
+        context = {
+            "bank_id": i,
+            "DATA_WIDTH": params["DATA_WIDTH"],
+            "LOCAL_ADDR_WIDTH": local_addr
+        }
 
-endmodule
-"""
+        code = render_template("bank.v.j2", context)
+        rtl.append(code)
+
+    return "\n\n".join(rtl)

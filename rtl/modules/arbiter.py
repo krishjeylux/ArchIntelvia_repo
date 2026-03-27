@@ -1,37 +1,11 @@
-# backend/rtl/modules/arbiter.py
+from rtl.template_engine import render_template
 
-def generate_arbiter(plan: dict, params: dict) -> str:
 
-    banks = plan["num_banks"]
+def generate_arbiter(plan, params):
 
-    return f"""
-module arbiter (
-    input clk,
-    input rst,
-    input [{banks-1}:0] req,
-    output reg [{banks-1}:0] grant
-);
+    context = {
+        "num_banks": plan["num_banks"],
+        "pipeline_depth": params.get("PIPELINE_DEPTH", 0)
+    }
 
-    reg [{banks-1}:0] pointer;
-    integer i;
-
-    always @(posedge clk) begin
-        if (rst) begin
-            grant <= 0;
-            pointer <= 1;  // start with first priority
-        end else begin
-            grant <= 0;
-
-            // rotate priority
-            for (i = 0; i < {banks}; i = i + 1) begin
-                if (req[(i + pointer) % {banks}]) begin
-                    grant[(i + pointer) % {banks}] <= 1;
-                    pointer <= (i + pointer + 1) % {banks};
-                    disable for;
-                end
-            end
-        end
-    end
-
-endmodule
-"""
+    return render_template("arbiter.v.j2", context)
