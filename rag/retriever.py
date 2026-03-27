@@ -64,7 +64,7 @@ class Retriever:
         query = self.build_query(params)
 
         # Embed query
-        q_emb = self.model.encode([query])
+        q_emb = self.model.encode([query], normalize_embeddings=True)
 
         # Search FAISS
         distances, indices = self.index.search(np.array(q_emb), k)
@@ -77,7 +77,7 @@ class Retriever:
 
         # Join into context
         context = "\n\n---\n\n".join(results)
-
+        context = context[:2000]  # prevent LLM overload
         return context
 
     # -------------------------
@@ -111,3 +111,12 @@ if __name__ == "__main__":
     }
 
     retriever.debug_search(test_params)
+# Singleton retriever instance
+retriever_instance = Retriever()
+
+
+def retrieve_context(params: dict) -> str:
+    """
+    External interface used by planner
+    """
+    return retriever_instance.search(params)

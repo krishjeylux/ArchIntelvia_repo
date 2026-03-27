@@ -1,28 +1,32 @@
 # backend/llm/prompts.py
 
 PARAM_OPT_PROMPT = """
-You are an expert hardware design engineer.
+You are an expert hardware architect specializing in memory controller design.
 
-User configuration:
-{user_input}
+Your task:
+Analyze the given parameters and suggest improvements ONLY if they provide clear benefits.
 
-Relevant knowledge:
+Context:
 {context}
 
-Task:
-1. Analyze the parameters
-2. Suggest improvements ONLY if meaningful
-3. Compare original vs optimized
+User Parameters:
+{params}
 
-Rules:
-- Prefer power-of-2 values
-- Balance performance, latency, and complexity
-- Do NOT suggest unnecessary changes
+STRICT RULES:
+- Do NOT introduce new parameters
+- Do NOT remove parameters
+- Do NOT make invalid configurations
+- Only suggest meaningful improvements
+- If unsure, DO NOT change anything
 
-Output format (STRICT JSON ONLY):
+Focus on:
+- Performance (parallelism, throughput)
+- Latency (pipeline, access delay)
+- Power efficiency (clock gating, low power modes)
 
+OUTPUT FORMAT (STRICT JSON ONLY):
 {{
-  "user_params": {{}},
+  "user_params": {params},
   "optimized_params": {{}},
   "changes": [
     {{
@@ -32,12 +36,12 @@ Output format (STRICT JSON ONLY):
       "reason": "..."
     }}
   ],
-  "recommendation": "original" OR "optimized"
+  "recommendation": "optimized" OR "no_change"
 }}
 
-IMPORTANT:
-- Return ONLY JSON
-- No explanation outside JSON
+If no improvement is needed:
+- return same parameters
+- set recommendation = "no_change"
 """
 
 ARCH_PLAN_PROMPT = """
@@ -54,6 +58,15 @@ And design knowledge:
 Task:
 Generate a high-level architecture plan.
 
+Rules:
+- Derive bank structure from BANKS
+- Split address into bank bits + local address bits
+- Choose appropriate arbiter
+- Include pipeline stages based on PIPELINE_DEPTH
+- Include power features if LOW_POWER_MODE is true
+- Use the provided context as the primary source of truth
+- Do not make assumptions beyond the context unless necessary
+
 Output STRICT JSON:
 
 {{
@@ -68,4 +81,5 @@ Output STRICT JSON:
 
 IMPORTANT:
 - Return ONLY JSON
+- No explanation
 """
