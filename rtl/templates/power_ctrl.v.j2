@@ -1,1 +1,12 @@
+module power_ctrl #(
+    parameter LOW_POWER_MODE = {{ 1 if LOW_POWER_MODE else 0 }}
+)(
+    input clk,
+    input rst,
+    input enable,
+    output gated_clk
+);
 
+    assign gated_clk = LOW_POWER_MODE ? (clk & enable) : clk;
+
+endmodule
