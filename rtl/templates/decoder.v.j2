@@ -1,5 +1,21 @@
-module decoder (
-    input clk
+module decoder #(
+    parameter BANKS = {{ BANKS }},
+    parameter ADDR_WIDTH = {{ ADDR_WIDTH }}
+)(
+    input [ADDR_WIDTH-1:0] addr,
+    output reg [BANKS-1:0] bank_sel
 );
-// Generated Decoder Module
+
+    integer i;
+
+    always @(*) begin
+        bank_sel = 0;
+        case(addr[{{ BANK_SEL_MSB }}:{{ BANK_SEL_LSB }}])
+            {% for i in range(BANKS) %}
+            {{ i }}: bank_sel[{{ i }}] = 1;
+            {% endfor %}
+            default: bank_sel = 0;
+        endcase
+    end
+
 endmodule
